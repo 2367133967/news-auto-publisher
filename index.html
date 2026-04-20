@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园新闻发布系统</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .news-item { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .news-title { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+        .news-meta { color: #666; font-size: 14px; margin: 10px 0; }
+        .news-content { line-height: 1.8; color: #444; }
+        .refresh-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
+        .refresh-btn:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>📰 校园新闻</h1>
+    <button class="refresh-btn" onclick="loadNews()">刷新新闻</button>
+    <div id="news-container"></div>
+
+    <script>
+        async function loadNews() {
+            try {
+                const response = await fetch('news_list.json');
+                const newsList = await response.json();
+                const container = document.getElementById('news-container');
+                container.innerHTML = newsList.map(news => `
+                    <div class="news-item">
+                        <h2 class="news-title">${news.title}</h2>
+                        <div class="news-meta">
+                            <span>📅 ${news.date}</span> | 
+                            <span>✍️ ${news.author}</span>
+                        </div>
+                        <div class="news-content">${news.content}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('news-container').innerHTML = '<p style="color:red;">加载新闻失败，请确保 news_list.json 文件存在。</p>';
+            }
+        }
+        window.onload = loadNews;
+    </script>
+</body>
+</html>
