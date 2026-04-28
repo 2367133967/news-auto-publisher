@@ -15,9 +15,8 @@ def inject_news(title, content, author="系统自动发布"):
     except (FileNotFoundError, json.JSONDecodeError):
         news_data = []
     
-    new_id = len(news_data) + 1 if news_data else 1
     new_article = {
-        "id": new_id,
+        "id": len(news_data) + 1 if news_data else 1,
         "title": title,
         "content": content,
         "author": author,
