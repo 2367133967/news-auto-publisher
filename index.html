@@ -5,40 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园新闻发布系统</title>
     <style>
-        body { font-family: 'Microsoft YaHei', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-        .news-item { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .news-title { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
-        .news-meta { color: #666; font-size: 14px; margin: 10px 0; }
-        .news-content { line-height: 1.8; color: #444; }
-        .refresh-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
-        .refresh-btn:hover { background: #45a049; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        
+        .header { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 30px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            text-align: center; 
+        }
+        
+        .header h1 { 
+            font-size: 28px; 
+            color: #333; 
+            margin-bottom: 8px; 
+        }
+        
+        .header .subtitle { 
+            color: #999; 
+            font-size: 14px; 
+        }
+        
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+        
+        .refresh-btn { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: white; 
+            border: none; 
+            padding: 12px 28px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); 
+        }
+        
+        .refresh-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); 
+        }
+        
+        .news-count { 
+            background: white; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            color: #666; 
+            font-size: 14px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        
+        .news-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
+        
+        .news-item { 
+            background: white; 
+            border-radius: 10px; 
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06); 
+            overflow: hidden; 
+            transition: all 0.2s; 
+        }
+        
+        .news-title-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 18px 24px; 
+            cursor: pointer; 
+            user-select: none; 
+            transition: background 0.2s; 
+        }
+        
+        .news-title-bar:hover { 
+            background: #f8f9ff; 
+        }
+        
+        .news-title-text { 
+            font-size: 17px; 
+            font-weight: 600; 
+            color: #333; 
+            flex: 1; 
+        }
+        
+        .news-arrow { 
+            font-size: 12px; 
+            color: #999; 
+            transition: transform 0.3s; 
+            margin-left: 12px; 
+        }
+        
+        .news-item.open .news-arrow { 
+            transform: rotate(180deg); 
+        }
+        
+        .news-meta-row { 
+            display: flex; 
+            gap: 20px; 
+            font-size: 12px; 
+            color: #aaa; 
+            margin-right: 10px; 
+        }
+        
+        .news-detail { 
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.4s ease; 
+            border-top: 1px solid #f0f0f0; 
+        }
+        
+        .news-item.open .news-detail { 
+            max-height: 500px; 
+        }
+        
+        .news-detail-inner { 
+            padding: 20px 24px; 
+            color: #555; 
+            line-height: 1.9; 
+            font-size: 15px; 
+        }
+        
+        .back-to-top { 
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            width: 48px; 
+            height: 48px; 
+            background: white; 
+            border: none; 
+            border-radius: 50%; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            cursor: pointer; 
+            font-size: 22px; 
+            color: #667eea; 
+            transition: all 0.3s; 
+            display: none; 
+        }
+        
+        .back-to-top:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 30px; 
+            color: rgba(255,255,255,0.7); 
+            font-size: 13px; 
+            margin-top: 30px; 
+        }
     </style>
 </head>
 <body>
-    <h1>📰 校园新闻</h1>
-    <button class="refresh-btn" onclick="loadNews()">刷新新闻</button>
-    <div id="news-container"></div>
+    <div class="container">
+        <div class="header">
+            <h1>📰 校园新闻</h1>
+            <p class="subtitle">基于大模型 Agent 的自动化发布系统</p>
+        </div>
+        
+        <div class="controls">
+            <button class="refresh-btn" onclick="loadNews()">🔄 刷新新闻</button>
+            <div class="news-count" id="news-count">加载中...</div>
+        </div>
+        
+        <div class="news-list" id="news-list"></div>
+        
+        <div class="footer">© 2026 校园新闻发布系统 | Powered by OpenClaw + Ollama</div>
+    </div>
+    
+    <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">⬆</button>
 
     <script>
+        function toggleNews(index) {
+            const item = document.getElementById('news-item-' + index);
+            item.classList.toggle('open');
+        }
+        
         async function loadNews() {
             try {
-                const response = await fetch('news_list.json?t=' + new Date().getTime());
+                const response = await fetch('news_list.json?t=' + new Date().getTime(), { cache: 'no-cache' });
                 const newsList = await response.json();
-                const container = document.getElementById('news-container');
-                container.innerHTML = newsList.map(news => `
-                    <div class="news-item">
-                        <h2 class="news-title">${news.title}</h2>
-                        <div class="news-meta">
-                            <span>📅 ${news.date}</span> | 
-                            <span>✍️ ${news.author}</span>
+                
+                document.getElementById('news-count').textContent = `共 ${newsList.length} 条新闻`;
+                
+                const listContainer = document.getElementById('news-list');
+                listContainer.innerHTML = newsList.map((news, index) => `
+                    <div class="news-item" id="news-item-${index}">
+                        <div class="news-title-bar" onclick="toggleNews(${index})">
+                            <span class="news-title-text">${news.title}</span>
+                            <span class="news-meta-row">
+                                <span>📅 ${news.date ? news.date.slice(0,10) : ''}</span>
+                            </span>
+                            <span class="news-arrow">▼</span>
                         </div>
-                        <div class="news-content">${news.content}</div>
+                        <div class="news-detail">
+                            <div class="news-detail-inner">
+                                <p style="color:#999;font-size:13px;margin-bottom:10px;">
+                                    ✍️ ${news.author} &nbsp;|&nbsp; 📅 ${news.date}
+                                </p>
+                                <p>${news.content}</p>
+                            </div>
+                        </div>
                     </div>
                 `).join('');
+                
             } catch (error) {
-                document.getElementById('news-container').innerHTML = '<p style="color:red;">加载新闻失败，请确保 news_list.json 文件存在。</p>';
+                document.getElementById('news-list').innerHTML = `
+                    <div style="text-align:center;padding:60px 20px;color:white;opacity:0.8;">
+                        <div style="font-size:60px;margin-bottom:20px;">📭</div>
+                        <p>暂无新闻数据</p>
+                    </div>
+                `;
+                document.getElementById('news-count').textContent = '暂无数据';
             }
         }
+        
+        // 回到顶部按钮
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('back-to-top');
+            btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+        });
+        
         window.onload = loadNews;
     </script>
 </body>

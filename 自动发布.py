@@ -1,7 +1,18 @@
 import json
 import os
 import argparse
+import subprocess
 from datetime import datetime
+
+def git_push_sync(title):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        subprocess.run(["git", "add", "news_list.json"], cwd=script_dir, check=True, capture_output=True, text=True, timeout=10, encoding='utf-8', errors='ignore')
+        subprocess.run(["git", "commit", "-m", f"Auto-publish: {title}"], cwd=script_dir, check=True, capture_output=True, text=True, timeout=10, encoding='utf-8', errors='ignore')
+        subprocess.run(["git", "push"], cwd=script_dir, check=True, capture_output=True, text=True, timeout=30, encoding='utf-8', errors='ignore')
+        print("GIT: 推送成功")
+    except Exception as e:
+        print(f"GIT: 推送未完成（可手动 git push）- {e}")
 
 def inject_news(title, content, author="系统自动发布"):
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +39,7 @@ def inject_news(title, content, author="系统自动发布"):
         json.dump(news_data, f, ensure_ascii=False, indent=2)
     
     print(f"SUCCESS: 新闻《{title}》已成功发布。")
+    return True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -35,4 +47,15 @@ if __name__ == "__main__":
     parser.add_argument("--content", required=True)
     parser.add_argument("--author", default="系统自动发布")
     args = parser.parse_args()
-    inject_news(args.title, args.content, args.author)
+
+# 清洗标题：去掉可能的 "标题=" 前缀
+title = args.title
+if title.startswith("标题="):
+    title = title[3:]
+elif title.startswith("标题："):
+    title = title[3:]
+elif title.startswith("标题:"):
+    title = title[3:]
+
+if inject_news(title, args.content, args.author):
+    git_push_sync(title)
